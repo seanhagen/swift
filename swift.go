@@ -472,6 +472,7 @@ func (c *Connection) Call(targetUrl string, p RequestOpts) (resp *http.Response,
 		var URL *url.URL
 		URL, err = url.Parse(targetUrl)
 		if err != nil {
+			fmt.Printf("Unable to parse url: %#v\n", err)
 			return
 		}
 		if p.Container != "" {
@@ -490,6 +491,7 @@ func (c *Connection) Call(targetUrl string, p RequestOpts) (resp *http.Response,
 		}
 		req, err = http.NewRequest(p.Operation, URL.String(), reader)
 		if err != nil {
+			fmt.Printf("Unable to create request: %#v\n", err)
 			return
 		}
 		if p.Headers != nil {
@@ -510,6 +512,7 @@ func (c *Connection) Call(targetUrl string, p RequestOpts) (resp *http.Response,
 		req.Header.Add("X-Auth-Token", authToken)
 		resp, err = c.doTimeoutRequest(timer, req)
 		if err != nil {
+			fmt.Printf("retries left: %v -- error: %#v\n", retries, err)
 			if (p.Operation == "HEAD" || p.Operation == "GET") && retries > 0 {
 				retries--
 				continue
@@ -527,6 +530,7 @@ func (c *Connection) Call(targetUrl string, p RequestOpts) (resp *http.Response,
 	}
 
 	if err = c.parseHeaders(resp, p.ErrorMap); err != nil {
+		fmt.Printf("unable to parse headers? %#v\n", err)
 		_ = resp.Body.Close()
 		return nil, nil, err
 	}
@@ -534,6 +538,7 @@ func (c *Connection) Call(targetUrl string, p RequestOpts) (resp *http.Response,
 	if p.NoResponse {
 		err = resp.Body.Close()
 		if err != nil {
+			fmt.Printf("unable to close body? %#v\n", err)
 			return nil, nil, err
 		}
 	} else {
